@@ -68,6 +68,6 @@ files:
     if __name__ == '__main__':
         TestStage4("cconverter.cconverter").run_tests()
   learner_created: false
-feedback_link: https://hyperskill.org/projects/157/stages/820/implement#comment
-status: Unchecked
-record: -1
+feedback_link: https://hyperskill.org/learn/step/12122#comment
+status: Solved
+record: 3

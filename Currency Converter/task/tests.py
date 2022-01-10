@@ -1,51 +1,59 @@
 from typing import List
 
+import ast
+import json
+import requests
 from hstest.check_result import CheckResult
 from hstest.stage_test import StageTest
 from hstest.test_case import TestCase
+from hstest import WrongAnswer
 
 
-class TestStage2(StageTest):
+class TestStage5(StageTest):
 
     def generate(self) -> List[TestCase]:
         list_tests = [
-            TestCase(stdin='42', attach=['42', '4200']),
-            TestCase(stdin='75', attach=['75', '7500'])
+            TestCase(stdin='HNL', attach='HNL'),
+            TestCase(stdin='ILS', attach='ILS')
 
         ]
+
+        try:
+            check_con = requests.get(f"https://www.floatrates.com/currency/eur/")
+        except requests.exceptions.ConnectionError:
+            raise WrongAnswer("Make sure that your Internet connection is fine, the URL "
+                              "is correct and floatrates.com is not down")
 
         return list_tests
 
     def check(self, reply: str, attach) -> CheckResult:
-        reply_parsed = reply.strip().split('\n')
-        if len(reply_parsed) != 3:
-            return CheckResult.wrong("Check your output")
-        first_parsed = reply_parsed[0].split()
-        if len(first_parsed) != 4:
-            return CheckResult.wrong("Check your first line")
-        try:
-            amount = int(first_parsed[2])
-        except ValueError:
-            return CheckResult.wrong("Format your output"
-                                     "according to the example")
-        if amount != int(attach[0]):
-            return CheckResult.wrong("The amount of money is wrong")
-        second_parsed = reply_parsed[1].split()
-        if len(second_parsed) != 5:
-            return CheckResult.wrong("Check your second line")
-        try:
-            amount = int(second_parsed[0])
-            dollars = int(second_parsed[3])
-        except ValueError:
-            return CheckResult.wrong("Format your output"
-                                     "according to the example")
-        if amount != int(attach[0]) or dollars != int(attach[1]):
-            return CheckResult.wrong("The amount of monet is wrong")
-        if "i am rich" not in reply_parsed[2].lower():
-            return CheckResult.wrong("Your output differs from the example")
+        json_to_be = requests.get(f"http://www.floatrates.com/daily/{attach}.json").text
+        reply_parsed = [i for i in reply.split('\n') if i]
+        usd_json = json.loads(json_to_be)['usd']
+        eur_json = json.loads(json_to_be)['eur']
+        he = {}
+        jsons = [usd_json, eur_json]
+        if len(reply_parsed) != 2:
+            return CheckResult.wrong("Your output is incorrect")
+        for i, repl in enumerate(reply_parsed):
+            try:
+                repl = ast.literal_eval(repl)
+            except SyntaxError:
+                return CheckResult.wrong("The format of the data is incorrect")
+            except ValueError:
+                return CheckResult.wrong("The format of the data is incorrect")
+            if type(repl) != dict:
+                return CheckResult.wrong("Your output should contain a dictionary.\n"
+                                         "Make sure the format of your output is correct.")
+            for key in repl.keys():
+                try:
+                    if repl[key] != jsons[i][key]:
+                        return CheckResult.wrong("Make sure your output is right")
+                except KeyError:
+                    return CheckResult.wrong("The key needed is absent in your data")
 
         return CheckResult.correct()
 
 
 if __name__ == '__main__':
-    TestStage2("cconverter.cconverter").run_tests()
+    TestStage5("cconverter.cconverter").run_tests()

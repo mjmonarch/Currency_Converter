@@ -60,9 +60,9 @@ files:
     if __name__ == '__main__':
         TestStage2("cconverter.cconverter").run_tests()
   learner_created: false
-feedback_link: https://hyperskill.org/projects/157/stages/818/implement#comment
+feedback_link: https://hyperskill.org/learn/step/12120#comment
 status: Solved
 feedback:
   message: Congratulations!
   time: Sat, 08 Jan 2022 07:15:32 UTC
-record: -1
+record: 2
